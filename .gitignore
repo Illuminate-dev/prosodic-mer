@@ -1,0 +1,22 @@
+# data and artifacts
+data/
+checkpoints/
+results/
+logs/
+runs/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# env
+.venv/
+venv/
+
+# os
+.DS_Store
