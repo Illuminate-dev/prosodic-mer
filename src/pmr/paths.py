@@ -34,6 +34,9 @@ class ProjectPaths:
     def vocals(self, dataset: str) -> Path:
         return self.processed / "vocals" / dataset
 
+    def transcriptions(self, dataset: str) -> Path:
+        return self.processed / "transcriptions" / dataset
+
     def ensure_outputs(self) -> None:
         for path in (self.processed, self.processed / "vocals"):
             path.mkdir(parents=True, exist_ok=True)

@@ -7,6 +7,7 @@ dependencies = [
     "spleeter==2.4.2",
     "numpy>=1.23,<=1.24.3",
     "soundfile>=0.12",
+    "faster-whisper>=1.0",
 ]
 
 [build-system]
