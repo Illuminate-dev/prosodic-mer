@@ -13,10 +13,17 @@ class TranscriptionConfig:
 
 
 @dataclass(frozen=True)
+class AlignmentConfig:
+    silence_noise_db: float = -35.0
+    min_silence_s: float = 0.35
+
+
+@dataclass(frozen=True)
 class DataConfig:
     dataset: str = "DEAM"
     separation: SeparationConfig = field(default_factory=SeparationConfig)
     transcription: TranscriptionConfig = field(default_factory=TranscriptionConfig)
+    alignment: AlignmentConfig = field(default_factory=AlignmentConfig)
 
 
 @dataclass(frozen=True)

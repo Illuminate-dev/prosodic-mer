@@ -37,6 +37,9 @@ class ProjectPaths:
     def transcriptions(self, dataset: str) -> Path:
         return self.processed / "transcriptions" / dataset
 
+    def alignments(self, dataset: str) -> Path:
+        return self.processed / "alignments" / dataset
+
     def ensure_outputs(self) -> None:
         for path in (self.processed, self.processed / "vocals"):
             path.mkdir(parents=True, exist_ok=True)
