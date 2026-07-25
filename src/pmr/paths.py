@@ -40,6 +40,9 @@ class ProjectPaths:
     def alignments(self, dataset: str) -> Path:
         return self.processed / "alignments" / dataset
 
+    def features(self, dataset: str, unit: str, modality: str) -> Path:
+        return self.processed / "features" / dataset / unit / modality
+
     def ensure_outputs(self) -> None:
         for path in (self.processed, self.processed / "vocals"):
             path.mkdir(parents=True, exist_ok=True)
