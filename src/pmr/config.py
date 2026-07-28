@@ -24,6 +24,12 @@ class FeatureConfig:
 
 
 @dataclass(frozen=True)
+class ModelConfig:
+    emotion_dim: int = 128
+    depth: int = 3
+
+
+@dataclass(frozen=True)
 class DataConfig:
     dataset: str = "DEAM"
     separation: SeparationConfig = field(default_factory=SeparationConfig)
@@ -37,6 +43,7 @@ class ProjectConfig:
     name: str = "prosodic-mer"
     seed: int = 42
     data: DataConfig = field(default_factory=DataConfig)
+    model: ModelConfig = field(default_factory=ModelConfig)
 
     def validate(self) -> None:
         if not self.data.separation.spleeter_stems:
@@ -45,3 +52,7 @@ class ProjectConfig:
             raise ValueError("transcription.model must be set")
         if self.data.features.unit not in ("sentence", "word"):
             raise ValueError("features.unit must be 'sentence' or 'word'")
+        if self.model.emotion_dim % 2:
+            raise ValueError("model.emotion_dim must be even")
+        if self.model.depth < 1:
+            raise ValueError("model.depth must be positive")
