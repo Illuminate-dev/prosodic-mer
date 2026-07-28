@@ -108,11 +108,34 @@ class CrossProcessing(nn.Module):
         return emotions
 
 
+class HierarchicalCrossProcessing(nn.Module):
+    def __init__(self, melody_dim: int, lyric_dim: int, dim: int, depth: int):
+        super().__init__()
+        self.verse = CrossProcessing(melody_dim, lyric_dim, dim, depth)
+        self.chorus = CrossProcessing(melody_dim, lyric_dim, dim, depth)
+
+    def forward(
+        self, melody: torch.Tensor, lyric: torch.Tensor, chorus: torch.Tensor
+    ) -> torch.Tensor:
+        verse = self.verse(melody, lyric)
+        chorus_emotions = self.chorus(melody, lyric)
+        return torch.where(chorus.unsqueeze(-1), chorus_emotions, verse)
+
+
 def build_cross_processing(
     config: ProjectConfig, melody_dim: int, lyric_dim: int
 ) -> CrossProcessing:
     model = config.model
     return CrossProcessing(melody_dim, lyric_dim, model.emotion_dim, model.depth)
+
+
+def build_hierarchical_cross_processing(
+    config: ProjectConfig, melody_dim: int, lyric_dim: int
+) -> HierarchicalCrossProcessing:
+    model = config.model
+    return HierarchicalCrossProcessing(
+        melody_dim, lyric_dim, model.emotion_dim, model.depth
+    )
 
 
 def _cumsum_softmax(e: torch.Tensor) -> torch.Tensor:

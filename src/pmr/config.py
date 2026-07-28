@@ -24,6 +24,12 @@ class FeatureConfig:
 
 
 @dataclass(frozen=True)
+class StructureConfig:
+    similarity: float = 0.8
+    min_duration_s: float = 50.0
+
+
+@dataclass(frozen=True)
 class ModelConfig:
     emotion_dim: int = 128
     depth: int = 3
@@ -36,6 +42,7 @@ class DataConfig:
     transcription: TranscriptionConfig = field(default_factory=TranscriptionConfig)
     alignment: AlignmentConfig = field(default_factory=AlignmentConfig)
     features: FeatureConfig = field(default_factory=FeatureConfig)
+    structure: StructureConfig = field(default_factory=StructureConfig)
 
 
 @dataclass(frozen=True)
@@ -52,6 +59,10 @@ class ProjectConfig:
             raise ValueError("transcription.model must be set")
         if self.data.features.unit not in ("sentence", "word"):
             raise ValueError("features.unit must be 'sentence' or 'word'")
+        if not 0.0 < self.data.structure.similarity <= 1.0:
+            raise ValueError("structure.similarity must be in (0, 1]")
+        if self.data.structure.min_duration_s <= 0.0:
+            raise ValueError("structure.min_duration_s must be positive")
         if self.model.emotion_dim % 2:
             raise ValueError("model.emotion_dim must be even")
         if self.model.depth < 1:
