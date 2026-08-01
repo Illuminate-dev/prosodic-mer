@@ -36,6 +36,16 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class TrainingConfig:
+    learning_rate: float = 1e-4
+    batch_size: int = 32
+    epochs: int = 100
+    patience: int = 10
+    val_fraction: float = 0.1
+    test_fraction: float = 0.1
+
+
+@dataclass(frozen=True)
 class DataConfig:
     dataset: str = "DEAM"
     separation: SeparationConfig = field(default_factory=SeparationConfig)
@@ -51,6 +61,7 @@ class ProjectConfig:
     seed: int = 42
     data: DataConfig = field(default_factory=DataConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
+    training: TrainingConfig = field(default_factory=TrainingConfig)
 
     def validate(self) -> None:
         if not self.data.separation.spleeter_stems:
@@ -67,3 +78,11 @@ class ProjectConfig:
             raise ValueError("model.emotion_dim must be even")
         if self.model.depth < 1:
             raise ValueError("model.depth must be positive")
+        if self.training.batch_size < 1 or self.training.epochs < 1:
+            raise ValueError("training.batch_size and epochs must be positive")
+        if not 0.0 <= self.training.val_fraction < 1.0:
+            raise ValueError("training.val_fraction must be in [0, 1)")
+        if not 0.0 <= self.training.test_fraction < 1.0:
+            raise ValueError("training.test_fraction must be in [0, 1)")
+        if self.training.val_fraction + self.training.test_fraction >= 1.0:
+            raise ValueError("training val + test fractions must be < 1")

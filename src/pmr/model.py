@@ -7,7 +7,6 @@ from pmr.config import ProjectConfig
 class EmotionLSTMCell(nn.Module):
     def __init__(self, input_dim: int, dim: int):
         super().__init__()
-        self.dim = dim
         gates = input_dim + dim
         self.input_gate = nn.Linear(gates, dim)
         self.forget_gate = nn.Linear(gates, dim)
@@ -122,20 +121,39 @@ class HierarchicalCrossProcessing(nn.Module):
         return torch.where(chorus.unsqueeze(-1), chorus_emotions, verse)
 
 
-def build_cross_processing(
-    config: ProjectConfig, melody_dim: int, lyric_dim: int
-) -> CrossProcessing:
-    model = config.model
-    return CrossProcessing(melody_dim, lyric_dim, model.emotion_dim, model.depth)
+def masked_mean(x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    if mask is None:
+        return x.mean(dim=1)
+    weights = mask.unsqueeze(-1).to(x.dtype)
+    return (x * weights).sum(dim=1) / weights.sum(dim=1).clamp(min=1.0)
 
 
-def build_hierarchical_cross_processing(
+class EmotionRegressor(nn.Module):
+    def __init__(self, melody_dim: int, lyric_dim: int, dim: int, depth: int):
+        super().__init__()
+        self.cross = HierarchicalCrossProcessing(melody_dim, lyric_dim, dim, depth)
+        self.head = nn.Linear(dim, 2)  # valence, arousal
+
+    def forward(
+        self,
+        melody: torch.Tensor,
+        lyric: torch.Tensor,
+        chorus: torch.Tensor | None = None,
+        mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        if chorus is None:
+            chorus = torch.zeros(
+                melody.shape[:2], dtype=torch.bool, device=melody.device
+            )
+        emotions = self.cross(melody, lyric, chorus)
+        return self.head(masked_mean(emotions, mask))
+
+
+def build_emotion_regressor(
     config: ProjectConfig, melody_dim: int, lyric_dim: int
-) -> HierarchicalCrossProcessing:
+) -> EmotionRegressor:
     model = config.model
-    return HierarchicalCrossProcessing(
-        melody_dim, lyric_dim, model.emotion_dim, model.depth
-    )
+    return EmotionRegressor(melody_dim, lyric_dim, model.emotion_dim, model.depth)
 
 
 def _cumsum_softmax(e: torch.Tensor) -> torch.Tensor:

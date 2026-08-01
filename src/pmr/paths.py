@@ -46,6 +46,17 @@ class ProjectPaths:
     def structures(self, dataset: str) -> Path:
         return self.processed / "structure" / dataset
 
+    def labels(self, dataset: str) -> Path:
+        return self.processed / "labels" / dataset
+
+    @property
+    def artifacts(self) -> Path:
+        return self.root / "artifacts"
+
+    @property
+    def checkpoints(self) -> Path:
+        return self.artifacts / "checkpoints"
+
     def ensure_outputs(self) -> None:
         for path in (self.processed, self.processed / "vocals"):
             path.mkdir(parents=True, exist_ok=True)
