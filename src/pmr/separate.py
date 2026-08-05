@@ -114,6 +114,7 @@ def separate_dataset(
     logger.info("separating %d track(s)", len(tracks))
 
     results: list[SeparationResult] = []
+    skipped = 0
     for index, source in enumerate(tracks, start=1):
         target = target_dir / f"{source.stem}.wav"
         if target.exists() and not overwrite:
@@ -125,6 +126,7 @@ def separate_dataset(
             logger.error(
                 "[%d/%d] %s failed: %s", index, len(tracks), source.name, error
             )
+            skipped += 1
             continue
         logger.info(
             "[%d/%d] %s -> %s (%.1fs)",
@@ -136,5 +138,5 @@ def separate_dataset(
         )
         results.append(result)
 
-    logger.info("wrote %d to %s", len(results), target_dir)
+    logger.info("wrote %d to %s (%d skipped)", len(results), target_dir, skipped)
     return results

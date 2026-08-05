@@ -167,6 +167,7 @@ def feature_dataset(
     albert_embedder = AlbertEmbedder(device)
 
     track_ids_done: list[str] = []
+    skipped = 0
     for index, alignment in enumerate(tracks, start=1):
         track_id = alignment.stem
         vggish_target = vggish_dir / f"{track_id}.npz"
@@ -181,10 +182,12 @@ def feature_dataset(
         audio = find_audio(raw_dir, track_id)
         if audio is None:
             logger.error("[%d/%d] %s has no raw audio", index, len(tracks), track_id)
+            skipped += 1
             continue
         units = load_units(config, paths, track_id)
         if not units:
             logger.warning("[%d/%d] %s has no units", index, len(tracks), track_id)
+            skipped += 1
             continue
         try:
             vggish_features = vggish_embedder.embed(audio, units)
@@ -193,6 +196,7 @@ def feature_dataset(
             logger.error(
                 "[%d/%d] %s failed: %s", index, len(tracks), track_id, error
             )
+            skipped += 1
             continue
         write_features(vggish_target, vggish_features, units)
         write_features(albert_target, albert_features, units)
@@ -201,5 +205,10 @@ def feature_dataset(
         )
         track_ids_done.append(track_id)
 
-    logger.info("wrote %d track(s) to %s", len(track_ids_done), vggish_dir.parent)
+    logger.info(
+        "wrote %d track(s) to %s (%d skipped)",
+        len(track_ids_done),
+        vggish_dir.parent,
+        skipped,
+    )
     return track_ids_done

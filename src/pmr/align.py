@@ -142,6 +142,7 @@ def align_dataset(
     logger.info("aligning %d tracks", len(transcriptions))
 
     results: list[Alignment] = []
+    skipped = 0
     for index, transcription in enumerate(transcriptions, start=1):
         vocal = vocal_dir / f"{transcription.stem}.wav"
         target = target_dir / transcription.name
@@ -163,6 +164,7 @@ def align_dataset(
                 transcription.name,
                 error,
             )
+            skipped += 1
             continue
         write_alignment(alignment, target)
         logger.info(
@@ -174,5 +176,5 @@ def align_dataset(
         )
         results.append(alignment)
 
-    logger.info("wrote %d to %s", len(results), target_dir)
+    logger.info("wrote %d to %s (%d skipped)", len(results), target_dir, skipped)
     return results

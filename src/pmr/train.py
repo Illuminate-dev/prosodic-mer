@@ -61,6 +61,7 @@ def load_examples(config: ProjectConfig, paths: ProjectPaths) -> list[Example]:
     label_paths = sorted(label_dir.glob("*.npz")) if label_dir.exists() else []
 
     examples: list[Example] = []
+    skipped = 0
     for label_path in label_paths:
         track_id = label_path.stem
         melody = load_feature(paths, dataset, unit, "vggish", track_id)
@@ -68,10 +69,17 @@ def load_examples(config: ProjectConfig, paths: ProjectPaths) -> list[Example]:
         values = np.load(label_path)["values"]
         if melody is None or lyric is None:
             logger.warning("skipping %s (missing features)", track_id)
+            skipped += 1
             continue
         features, starts, ends = melody
         if len(values) != len(features) or len(lyric[0]) != len(features):
             logger.warning("skipping %s (length mismatch)", track_id)
+            skipped += 1
+            continue
+        target = np.nanmean(values, axis=0)
+        if np.isnan(target).any():
+            logger.warning("skipping %s (no annotated units)", track_id)
+            skipped += 1
             continue
         examples.append(
             Example(
@@ -79,9 +87,10 @@ def load_examples(config: ProjectConfig, paths: ProjectPaths) -> list[Example]:
                 melody=torch.tensor(features, dtype=torch.float32),
                 lyric=torch.tensor(lyric[0], dtype=torch.float32),
                 chorus=load_chorus(paths, dataset, track_id, starts, ends),
-                target=torch.tensor(values.mean(axis=0), dtype=torch.float32),
+                target=torch.tensor(target, dtype=torch.float32),
             )
         )
+    logger.info("loaded %d track(s) (%d skipped)", len(examples), skipped)
     return examples
 
 
