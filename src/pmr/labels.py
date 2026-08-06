@@ -32,16 +32,23 @@ def load_dynamic(source: Path) -> dict[int, tuple[np.ndarray, np.ndarray]]:
     return dynamic
 
 
-def interpolate(
+def span_mean(
     times: np.ndarray,
     values: np.ndarray,
     starts: np.ndarray,
     ends: np.ndarray,
 ) -> np.ndarray:
-    midpoints = (starts + ends) / 2
-    interpolated = np.interp(midpoints, times, values)
-    interpolated[(midpoints < times[0]) | (midpoints > times[-1])] = np.nan # no extrapolation
-    return interpolated
+    result = np.full(len(starts), np.nan)
+    for index, (start, end) in enumerate(zip(starts, ends)):
+        low = max(start, times[0])
+        high = min(end, times[-1])
+        if low > high:
+            continue
+        inside = values[(times >= low) & (times <= high)]
+        result[index] = (
+            inside.mean() if inside.size else np.interp((low + high) / 2, times, values)
+        )
+    return result
 
 
 def label_dataset(
@@ -93,8 +100,8 @@ def label_dataset(
         starts, ends = data["start"], data["end"]
         values = np.stack(
             [
-                interpolate(*valence[song], starts, ends),
-                interpolate(*arousal[song], starts, ends),
+                span_mean(*valence[song], starts, ends),
+                span_mean(*arousal[song], starts, ends),
             ],
             axis=1,
         ).astype("float32")

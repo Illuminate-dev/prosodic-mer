@@ -10,6 +10,7 @@ class SeparationConfig:
 class TranscriptionConfig:
     model: str = "small"
     device: str = "auto"
+    language: str = "en"
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,8 @@ class ProjectConfig:
             raise ValueError("separation.spleeter_stems must be set")
         if not self.data.transcription.model:
             raise ValueError("transcription.model must be set")
+        if not self.data.transcription.language:
+            raise ValueError("transcription.language must be set")
         if self.data.features.unit not in ("sentence", "word"):
             raise ValueError("features.unit must be 'sentence' or 'word'")
         if not 0.0 < self.data.structure.similarity <= 1.0:

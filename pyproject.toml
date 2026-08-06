@@ -11,6 +11,7 @@ dependencies = [
     "torch",
     "transformers",
     "torchvggish",
+    "tensorboard",
 ]
 
 [build-system]

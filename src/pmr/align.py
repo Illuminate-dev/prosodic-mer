@@ -86,7 +86,15 @@ def align_pairs(
         while index < len(phrases) - 1 and phrases[index][1] < midpoint:
             index += 1
         start, end = phrases[index]
-        pairs.append(Pair(lyric=lyric, melody=Melody(start=start, end=end)))
+        pairs.append(
+            Pair(
+                lyric=lyric,
+                melody=Melody(
+                    start=max(start, lyric.start),
+                    end=min(end, lyric.end),
+                ),
+            )
+        )
     return pairs
 
 

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from torch import nn
+from torch.utils.tensorboard import SummaryWriter
 
 from pmr.config import ProjectConfig
 from pmr.metrics import evaluate
@@ -171,6 +172,8 @@ def validation_loss(model, examples, criterion, device) -> float:
 
 
 def run(config: ProjectConfig, paths: ProjectPaths) -> dict[str, float]:
+    torch.manual_seed(config.seed)
+    torch.cuda.manual_seed_all(config.seed)
     examples = load_examples(config, paths)
     if len(examples) < 3:
         raise RuntimeError(f"need at least 3 labelled tracks, found {len(examples)}")
@@ -192,6 +195,9 @@ def run(config: ProjectConfig, paths: ProjectPaths) -> dict[str, float]:
     rng = random.Random(config.seed)
 
     checkpoint = paths.checkpoints / f"{config.data.dataset}.pt"
+    writer = SummaryWriter(
+        paths.artifacts / "logs" / "tensorboard" / config.data.dataset
+    )
     best_loss = float("inf")
     stale = 0
     for epoch in range(1, training.epochs + 1):
@@ -210,10 +216,11 @@ def run(config: ProjectConfig, paths: ProjectPaths) -> dict[str, float]:
             loss.backward()
             optimizer.step()
             total += loss.detach().item() * len(group)
+        train_loss = total / len(train_set)
         validation = validation_loss(model, val_set, criterion, device)
-        logger.info(
-            "epoch %d train %.4f val %.4f", epoch, total / len(train_set), validation
-        )
+        writer.add_scalar("loss/train", train_loss, epoch)
+        writer.add_scalar("loss/val", validation, epoch)
+        logger.info("epoch %d train %.4f val %.4f", epoch, train_loss, validation)
         if validation < best_loss - 1e-6:
             best_loss = validation
             stale = 0
@@ -228,6 +235,13 @@ def run(config: ProjectConfig, paths: ProjectPaths) -> dict[str, float]:
     model.load_state_dict(torch.load(checkpoint, map_location=device))
     if test_set:
         predictions, targets = predict(model, test_set, device)
-        logger.info("test metrics: %s", evaluate(predictions, targets))
+        test_metrics = evaluate(predictions, targets)
+        logger.info("test metrics: %s", test_metrics)
+        for name, value in test_metrics.items():
+            writer.add_scalar(f"test/{name}", value, 0)
     predictions, targets = predict(model, val_set, device)
-    return evaluate(predictions, targets)
+    metrics = evaluate(predictions, targets)
+    for name, value in metrics.items():
+        writer.add_scalar(f"val/{name}", value, 0)
+    writer.close()
+    return metrics

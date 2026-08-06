@@ -98,6 +98,7 @@ def transcribe_dataset(
     results: list[Transcription] = []
     skipped = 0
     empty = 0
+    foreign = 0
     for index, source in enumerate(tracks, start=1):
         target = target_dir / f"{source.stem}.json"
         if target.exists() and not overwrite:
@@ -110,6 +111,16 @@ def transcribe_dataset(
                 "[%d/%d] %s failed: %s", index, len(tracks), source.name, error
             )
             skipped += 1
+            continue
+        if transcription.segments and transcription.language != settings.language:
+            logger.warning(
+                "[%d/%d] %s: language %s",
+                index,
+                len(tracks),
+                source.name,
+                transcription.language,
+            )
+            foreign += 1
             continue
         write_transcription(transcription, target)
         if not transcription.segments:
@@ -125,10 +136,12 @@ def transcribe_dataset(
         results.append(transcription)
 
     logger.info(
-        "wrote %d to %s (%d skipped, %d without lyrics)",
+        "wrote %d to %s (%d skipped, %d without lyrics, %d not %s)",
         len(results),
         target_dir,
         skipped,
         empty,
+        foreign,
+        settings.language,
     )
     return results
