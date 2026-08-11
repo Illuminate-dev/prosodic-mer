@@ -103,10 +103,14 @@ def find_audio(raw_dir: Path, track_id: str) -> Path | None:
 
 
 def load_units(
-    config: ProjectConfig, paths: ProjectPaths, track_id: str
+    config: ProjectConfig,
+    paths: ProjectPaths,
+    track_id: str,
+    unit: str | None = None,
 ) -> list[Unit]:
     dataset = config.data.dataset
-    if config.data.features.unit == "sentence":
+    unit = unit or config.data.features.unit
+    if unit == "sentence":
         source = paths.alignments(dataset) / f"{track_id}.json"
         pairs = json.loads(source.read_text())["pairs"]
         return [
@@ -143,17 +147,20 @@ def feature_dataset(
     track_ids: Iterable[str] | None = None,
     limit: int | None = None,
     overwrite: bool = False,
+    modalities: Iterable[str] = ("audio", "text"),
 ) -> list[str]:
     dataset = config.data.dataset
     raw_dir = paths.raw_dataset(dataset)
     alignment_dir = paths.alignments(dataset)
-    vggish_dir = paths.features(dataset, config.data.features.unit, "vggish")
-    albert_dir = paths.features(dataset, config.data.features.unit, "albert")
+    unit = config.data.features.unit
+    modalities = set(modalities)
+    vggish_dir = paths.features(dataset, unit, "vggish")
+    albert_dir = paths.features(dataset, unit, "albert")
 
     tracks = sorted(alignment_dir.glob("*.json")) if alignment_dir.exists() else []
     if track_ids is not None:
-        wanted = set(track_ids)
-        tracks = [path for path in tracks if path.stem in wanted]
+        selected = set(track_ids)
+        tracks = [path for path in tracks if path.stem in selected]
     if limit is not None:
         tracks = tracks[:limit]
 
@@ -163,26 +170,20 @@ def feature_dataset(
 
     device = resolve_device()
     logger.info("extracting features on %s", device)
-    vggish_embedder = VggishEmbedder(device)
-    albert_embedder = AlbertEmbedder(device)
+    vggish_embedder = VggishEmbedder(device) if "audio" in modalities else None
+    albert_embedder = AlbertEmbedder(device) if "text" in modalities else None
 
     track_ids_done: list[str] = []
     skipped = 0
     for index, alignment in enumerate(tracks, start=1):
         track_id = alignment.stem
-        vggish_target = vggish_dir / f"{track_id}.npz"
-        albert_target = albert_dir / f"{track_id}.npz"
-        if (
-            vggish_target.exists()
-            and albert_target.exists()
-            and not overwrite
-        ):
+        targets = {
+            name: directory / f"{track_id}.npz"
+            for name, directory in (("audio", vggish_dir), ("text", albert_dir))
+            if name in modalities
+        }
+        if all(target.exists() for target in targets.values()) and not overwrite:
             logger.debug("skipping existing %s", track_id)
-            continue
-        audio = find_audio(raw_dir, track_id)
-        if audio is None:
-            logger.error("[%d/%d] %s has no raw audio", index, len(tracks), track_id)
-            skipped += 1
             continue
         units = load_units(config, paths, track_id)
         if not units:
@@ -190,16 +191,21 @@ def feature_dataset(
             skipped += 1
             continue
         try:
-            vggish_features = vggish_embedder.embed(audio, units)
-            albert_features = albert_embedder.embed(units)
+            if vggish_embedder is not None:
+                audio = find_audio(raw_dir, track_id)
+                if audio is None:
+                    raise FileNotFoundError(f"no raw audio for {track_id}")
+                write_features(
+                    targets["audio"], vggish_embedder.embed(audio, units), units
+                )
+            if albert_embedder is not None:
+                write_features(targets["text"], albert_embedder.embed(units), units)
         except Exception as error:
             logger.error(
                 "[%d/%d] %s failed: %s", index, len(tracks), track_id, error
             )
             skipped += 1
             continue
-        write_features(vggish_target, vggish_features, units)
-        write_features(albert_target, albert_features, units)
         logger.info(
             "[%d/%d] %s -> %d units", index, len(tracks), track_id, len(units)
         )

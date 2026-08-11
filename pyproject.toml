@@ -12,6 +12,7 @@ dependencies = [
     "transformers",
     "torchvggish",
     "tensorboard",
+    "praat-parselmouth>=0.4.7",
 ]
 
 [build-system]
