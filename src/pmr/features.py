@@ -106,10 +106,9 @@ def load_units(
     config: ProjectConfig,
     paths: ProjectPaths,
     track_id: str,
-    unit: str | None = None,
+    unit: str,
 ) -> list[Unit]:
     dataset = config.data.dataset
-    unit = unit or config.data.features.unit
     if unit == "sentence":
         source = paths.alignments(dataset) / f"{track_id}.json"
         pairs = json.loads(source.read_text())["pairs"]
@@ -152,10 +151,9 @@ def feature_dataset(
     dataset = config.data.dataset
     raw_dir = paths.raw_dataset(dataset)
     alignment_dir = paths.alignments(dataset)
-    unit = config.data.features.unit
     modalities = set(modalities)
-    vggish_dir = paths.features(dataset, unit, "vggish")
-    albert_dir = paths.features(dataset, unit, "albert")
+    vggish_dir = paths.features(dataset, "sentence", "vggish")
+    albert_dir = paths.features(dataset, "sentence", "albert")
 
     tracks = sorted(alignment_dir.glob("*.json")) if alignment_dir.exists() else []
     if track_ids is not None:
@@ -185,7 +183,7 @@ def feature_dataset(
         if all(target.exists() for target in targets.values()) and not overwrite:
             logger.debug("skipping existing %s", track_id)
             continue
-        units = load_units(config, paths, track_id)
+        units = load_units(config, paths, track_id, "sentence")
         if not units:
             logger.warning("[%d/%d] %s has no units", index, len(tracks), track_id)
             skipped += 1

@@ -20,11 +20,6 @@ class AlignmentConfig:
 
 
 @dataclass(frozen=True)
-class FeatureConfig:
-    unit: str = "sentence"
-
-
-@dataclass(frozen=True)
 class StructureConfig:
     similarity: float = 0.8
     min_duration_s: float = 50.0
@@ -34,6 +29,8 @@ class StructureConfig:
 class ModelConfig:
     emotion_dim: int = 128
     depth: int = 3
+    prosody: bool = False
+    level: str = "word"
 
 
 @dataclass(frozen=True)
@@ -52,7 +49,6 @@ class DataConfig:
     separation: SeparationConfig = field(default_factory=SeparationConfig)
     transcription: TranscriptionConfig = field(default_factory=TranscriptionConfig)
     alignment: AlignmentConfig = field(default_factory=AlignmentConfig)
-    features: FeatureConfig = field(default_factory=FeatureConfig)
     structure: StructureConfig = field(default_factory=StructureConfig)
 
 
@@ -71,8 +67,6 @@ class ProjectConfig:
             raise ValueError("transcription.model must be set")
         if not self.data.transcription.language:
             raise ValueError("transcription.language must be set")
-        if self.data.features.unit not in ("sentence", "word"):
-            raise ValueError("features.unit must be 'sentence' or 'word'")
         if not 0.0 < self.data.structure.similarity <= 1.0:
             raise ValueError("structure.similarity must be in (0, 1]")
         if self.data.structure.min_duration_s <= 0.0:
@@ -81,6 +75,8 @@ class ProjectConfig:
             raise ValueError("model.emotion_dim must be even")
         if self.model.depth < 1:
             raise ValueError("model.depth must be positive")
+        if self.model.level not in ("word", "pair"):
+            raise ValueError("model.level must be 'word' or 'pair'")
         if self.training.batch_size < 1 or self.training.epochs < 1:
             raise ValueError("training.batch_size and epochs must be positive")
         if not 0.0 <= self.training.val_fraction < 1.0:

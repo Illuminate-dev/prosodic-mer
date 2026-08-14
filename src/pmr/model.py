@@ -82,6 +82,64 @@ class CrossProcessingLayer(nn.Module):
         )
 
 
+class ProsodyCrossProcessingLayer(nn.Module):
+    def __init__(
+        self, melody_dim: int, lyric_dim: int, prosody_dim: int, dim: int
+    ):
+        super().__init__()
+        self.dim = dim
+        self.melody = EmotionLSTMCell(melody_dim, dim)
+        self.lyric = EmotionLSTMCell(lyric_dim, dim)
+        self.prosody = EmotionLSTMCell(prosody_dim, dim)
+        self.fuse = nn.Linear(3 * dim, 3 * dim)
+        self.emotion0 = nn.Parameter(torch.zeros(dim))
+
+    def forward(
+        self,
+        melody: torch.Tensor,
+        lyric: torch.Tensor,
+        prosody: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        batch, steps, _ = melody.shape
+        device = melody.device
+        h_melody = c_melody = torch.zeros(batch, self.dim, device=device)
+        h_lyric = c_lyric = torch.zeros(batch, self.dim, device=device)
+        h_prosody = c_prosody = torch.zeros(batch, self.dim, device=device)
+        emotion = self.emotion0.expand(batch, -1)
+
+        melody_out, lyric_out, prosody_out, emotions = [], [], [], []
+        for step in range(steps):
+            h_melody, c_melody, e_melody = self.melody(
+                melody[:, step], h_melody, c_melody, emotion
+            )
+            h_lyric, c_lyric, e_lyric = self.lyric(
+                lyric[:, step], h_lyric, c_lyric, emotion
+            )
+            h_prosody, c_prosody, e_prosody = self.prosody(
+                prosody[:, step], h_prosody, c_prosody, emotion
+            )
+            joined = torch.cat([e_melody, e_lyric, e_prosody], dim=-1)
+            weights = torch.softmax(
+                self.fuse(joined).view(batch, 3, self.dim), dim=1
+            )
+            emotion = (
+                weights[:, 0] * e_melody
+                + weights[:, 1] * e_lyric
+                + weights[:, 2] * e_prosody
+            )
+            melody_out.append(h_melody)
+            lyric_out.append(h_lyric)
+            prosody_out.append(h_prosody)
+            emotions.append(emotion)
+
+        return (
+            torch.stack(melody_out, dim=1),
+            torch.stack(lyric_out, dim=1),
+            torch.stack(prosody_out, dim=1),
+            torch.stack(emotions, dim=1),
+        )
+
+
 class CrossProcessing(nn.Module):
     def __init__(
         self,
@@ -107,6 +165,38 @@ class CrossProcessing(nn.Module):
         return emotions
 
 
+class ProsodyCrossProcessing(nn.Module):
+    def __init__(
+        self,
+        melody_dim: int,
+        lyric_dim: int,
+        prosody_dim: int,
+        dim: int,
+        depth: int,
+    ):
+        super().__init__()
+        self.layers = nn.ModuleList(
+            ProsodyCrossProcessingLayer(
+                melody_dim if index == 0 else dim,
+                lyric_dim if index == 0 else dim,
+                prosody_dim if index == 0 else dim,
+                dim,
+            )
+            for index in range(depth)
+        )
+
+    def forward(
+        self,
+        melody: torch.Tensor,
+        lyric: torch.Tensor,
+        prosody: torch.Tensor,
+    ) -> torch.Tensor:
+        emotions = None
+        for layer in self.layers:
+            melody, lyric, prosody, emotions = layer(melody, lyric, prosody)
+        return emotions
+
+
 class HierarchicalCrossProcessing(nn.Module):
     def __init__(self, melody_dim: int, lyric_dim: int, dim: int, depth: int):
         super().__init__()
@@ -118,6 +208,35 @@ class HierarchicalCrossProcessing(nn.Module):
     ) -> torch.Tensor:
         verse = self.verse(melody, lyric)
         chorus_emotions = self.chorus(melody, lyric)
+        return torch.where(chorus.unsqueeze(-1), chorus_emotions, verse)
+
+
+class ProsodyHierarchicalCrossProcessing(nn.Module):
+    def __init__(
+        self,
+        melody_dim: int,
+        lyric_dim: int,
+        prosody_dim: int,
+        dim: int,
+        depth: int,
+    ):
+        super().__init__()
+        self.verse = ProsodyCrossProcessing(
+            melody_dim, lyric_dim, prosody_dim, dim, depth
+        )
+        self.chorus = ProsodyCrossProcessing(
+            melody_dim, lyric_dim, prosody_dim, dim, depth
+        )
+
+    def forward(
+        self,
+        melody: torch.Tensor,
+        lyric: torch.Tensor,
+        chorus: torch.Tensor,
+        prosody: torch.Tensor,
+    ) -> torch.Tensor:
+        verse = self.verse(melody, lyric, prosody)
+        chorus_emotions = self.chorus(melody, lyric, prosody)
         return torch.where(chorus.unsqueeze(-1), chorus_emotions, verse)
 
 
@@ -149,11 +268,51 @@ class EmotionRegressor(nn.Module):
         return self.head(masked_mean(emotions, mask))
 
 
+class ProsodyEmotionRegressor(nn.Module):
+    def __init__(
+        self,
+        melody_dim: int,
+        lyric_dim: int,
+        prosody_dim: int,
+        dim: int,
+        depth: int,
+    ):
+        super().__init__()
+        self.cross = ProsodyHierarchicalCrossProcessing(
+            melody_dim, lyric_dim, prosody_dim, dim, depth
+        )
+        self.head = nn.Linear(dim, 2)  # valence, arousal
+
+    def forward(
+        self,
+        melody: torch.Tensor,
+        lyric: torch.Tensor,
+        chorus: torch.Tensor | None = None,
+        mask: torch.Tensor | None = None,
+        prosody: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        if chorus is None:
+            chorus = torch.zeros(
+                melody.shape[:2], dtype=torch.bool, device=melody.device
+            )
+        emotions = self.cross(melody, lyric, chorus, prosody)
+        return self.head(masked_mean(emotions, mask))
+
+
 def build_emotion_regressor(
-    config: ProjectConfig, melody_dim: int, lyric_dim: int
-) -> EmotionRegressor:
+    config: ProjectConfig,
+    melody_dim: int,
+    lyric_dim: int,
+    prosody_dim: int | None = None,
+) -> nn.Module:
     model = config.model
-    return EmotionRegressor(melody_dim, lyric_dim, model.emotion_dim, model.depth)
+    if prosody_dim is None:
+        return EmotionRegressor(
+            melody_dim, lyric_dim, model.emotion_dim, model.depth
+        )
+    return ProsodyEmotionRegressor(
+        melody_dim, lyric_dim, prosody_dim, model.emotion_dim, model.depth
+    )
 
 
 def _cumsum_softmax(e: torch.Tensor) -> torch.Tensor:

@@ -63,7 +63,7 @@ def label_dataset(
     valence = load_dynamic(dynamic_dir / "valence.csv")
     arousal = load_dynamic(dynamic_dir / "arousal.csv")
 
-    feature_dir = paths.features(dataset, config.data.features.unit, "vggish")
+    feature_dir = paths.features(dataset, "sentence", "vggish")
     target_dir = paths.labels(dataset)
     tracks = sorted(feature_dir.glob("*.npz")) if feature_dir.exists() else []
     if track_ids is not None:
