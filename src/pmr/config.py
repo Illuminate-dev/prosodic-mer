@@ -30,7 +30,8 @@ class ModelConfig:
     emotion_dim: int = 128
     depth: int = 3
     prosody: bool = False
-    level: str = "word"
+    processing_level: str = "pair"
+    supervision_level: str = "track"
 
 
 @dataclass(frozen=True)
@@ -75,8 +76,10 @@ class ProjectConfig:
             raise ValueError("model.emotion_dim must be even")
         if self.model.depth < 1:
             raise ValueError("model.depth must be positive")
-        if self.model.level not in ("word", "pair"):
-            raise ValueError("model.level must be 'word' or 'pair'")
+        if self.model.processing_level not in ("word", "pair"):
+            raise ValueError("model.processing_level must be 'word' or 'pair'")
+        if self.model.supervision_level not in ("track", "sentence"):
+            raise ValueError("model.supervision_level must be 'track' or 'sentence'")
         if self.training.batch_size < 1 or self.training.epochs < 1:
             raise ValueError("training.batch_size and epochs must be positive")
         if not 0.0 <= self.training.val_fraction < 1.0:

@@ -259,12 +259,15 @@ class EmotionRegressor(nn.Module):
         lyric: torch.Tensor,
         chorus: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
+        pooled: bool = True,
     ) -> torch.Tensor:
         if chorus is None:
             chorus = torch.zeros(
                 melody.shape[:2], dtype=torch.bool, device=melody.device
             )
         emotions = self.cross(melody, lyric, chorus)
+        if not pooled:
+            return self.head(emotions)
         return self.head(masked_mean(emotions, mask))
 
 
@@ -290,12 +293,15 @@ class ProsodyEmotionRegressor(nn.Module):
         chorus: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
         prosody: torch.Tensor | None = None,
+        pooled: bool = True,
     ) -> torch.Tensor:
         if chorus is None:
             chorus = torch.zeros(
                 melody.shape[:2], dtype=torch.bool, device=melody.device
             )
         emotions = self.cross(melody, lyric, chorus, prosody)
+        if not pooled:
+            return self.head(emotions)
         return self.head(masked_mean(emotions, mask))
 
 
