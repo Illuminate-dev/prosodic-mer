@@ -80,9 +80,15 @@ class ProjectConfig:
             raise ValueError("model.processing_level must be 'word' or 'pair'")
         if self.model.supervision_level not in ("track", "sentence"):
             raise ValueError("model.supervision_level must be 'track' or 'sentence'")
-        if self.model.prosody_level not in (None, "prosody-v1", "prosody-v2"):
+        if self.model.prosody_level not in (
+            None,
+            "prosody-v1",
+            "prosody-v2",
+            "prosody-v3",
+        ):
             raise ValueError(
-                "model.prosody_level must be null, 'prosody-v1' or 'prosody-v2'"
+                "model.prosody_level must be null, 'prosody-v1', "
+                "'prosody-v2' or 'prosody-v3'"
             )
         if self.training.batch_size < 1 or self.training.epochs < 1:
             raise ValueError("training.batch_size and epochs must be positive")
