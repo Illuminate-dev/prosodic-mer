@@ -29,7 +29,7 @@ class StructureConfig:
 class ModelConfig:
     emotion_dim: int = 128
     depth: int = 3
-    prosody: bool = False
+    prosody_level: str | None = None
     processing_level: str = "pair"
     supervision_level: str = "track"
 
@@ -80,6 +80,10 @@ class ProjectConfig:
             raise ValueError("model.processing_level must be 'word' or 'pair'")
         if self.model.supervision_level not in ("track", "sentence"):
             raise ValueError("model.supervision_level must be 'track' or 'sentence'")
+        if self.model.prosody_level not in (None, "prosody-v1", "prosody-v2"):
+            raise ValueError(
+                "model.prosody_level must be null, 'prosody-v1' or 'prosody-v2'"
+            )
         if self.training.batch_size < 1 or self.training.epochs < 1:
             raise ValueError("training.batch_size and epochs must be positive")
         if not 0.0 <= self.training.val_fraction < 1.0:

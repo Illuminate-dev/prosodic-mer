@@ -95,8 +95,8 @@ def run_name(config: ProjectConfig) -> str:
     parts = [config.data.dataset]
     if config.model.processing_level == "word":
         parts.append("word")
-    if config.model.prosody:
-        parts.append("prosody")
+    if config.model.prosody_level:
+        parts.append(config.model.prosody_level)
     if config.model.supervision_level == "sentence":
         parts.append("sent")
     return "_".join(parts)
@@ -142,9 +142,9 @@ def load_examples(config: ProjectConfig, paths: ProjectPaths) -> list[Example]:
             starts, ends = word_starts, word_ends
 
         prosody_features = None
-        if config.model.prosody:
+        if config.model.prosody_level:
             prosody = load_feature(
-                paths, dataset, "word", "prosody", track_id
+                paths, dataset, "word", config.model.prosody_level, track_id
             )
             if prosody is None:
                 logger.warning("skipping %s (missing prosody)", track_id)
@@ -437,7 +437,7 @@ def fit(
     training = config.training
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     prosody_dim = (
-        train_set[0].prosody.shape[-1] if config.model.prosody else None
+        train_set[0].prosody.shape[-1] if config.model.prosody_level else None
     )
     model = build_emotion_regressor(
         config,
@@ -507,7 +507,7 @@ def run(config: ProjectConfig, paths: ProjectPaths) -> dict[str, float]:
     if len(examples) < 3:
         raise RuntimeError(f"need at least 3 labelled tracks, found {len(examples)}")
     train_set, val_set, test_set = split_examples(examples, config)
-    if config.model.prosody:
+    if config.model.prosody_level:
         train_set, val_set, test_set = standardize_prosody(
             train_set, val_set, test_set
         )

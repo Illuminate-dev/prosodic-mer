@@ -10,9 +10,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from pmr.config import ProjectConfig
 from pmr.features import feature_dataset
 from pmr.paths import ProjectPaths
-from pmr.prosody import prosody_dataset
+from pmr.prosody import EXTRACTORS
 
-MODALITIES = ("audio", "text", "prosody")
+MODALITIES = ("audio", "text", *EXTRACTORS)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -50,14 +50,15 @@ def main(argv: list[str] | None = None):
             overwrite=args.overwrite,
             modalities=modalities,
         )
-    if "prosody" in modalities:
-        track_ids += prosody_dataset(
-            config,
-            paths,
-            track_ids=args.track_ids,
-            limit=args.limit,
-            overwrite=args.overwrite,
-        )
+    for name, extractor in EXTRACTORS.items():
+        if name in modalities:
+            track_ids += extractor(
+                config,
+                paths,
+                track_ids=args.track_ids,
+                limit=args.limit,
+                overwrite=args.overwrite,
+            )
     if track_ids:
         print(f"extracted features for {len(set(track_ids))} track(s)")
 

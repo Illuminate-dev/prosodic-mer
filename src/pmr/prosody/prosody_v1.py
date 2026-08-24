@@ -9,12 +9,10 @@ from parselmouth.praat import call
 from pmr.config import ProjectConfig
 from pmr.features import Unit, load_units, write_features
 from pmr.paths import ProjectPaths
+from pmr.prosody.common import PITCH_CEILING, PITCH_FLOOR, TIME_STEP
 
 logger = logging.getLogger(__name__)
 
-PITCH_FLOOR = 75.0
-PITCH_CEILING = 600.0
-TIME_STEP = 0.01
 FORMANT_COUNT = 5
 MAXIMUM_FORMANT = 5500.0
 SHORTEST_PERIOD = 0.0001
@@ -22,7 +20,7 @@ LONGEST_PERIOD = 0.02
 MAX_PERIOD_FACTOR = 1.3
 MAX_AMPLITUDE_FACTOR = 1.6
 
-PROSODY_FEATURES = (
+PROSODY_V1_FEATURES = (
     "f0_mean",
     "f0_std",
     "f0_min",
@@ -49,10 +47,10 @@ PROSODY_FEATURES = (
     "voiced_duration",
     "voiced_fraction",
 )
-PROSODY_DIM = len(PROSODY_FEATURES)
+PROSODY_V1_DIM = len(PROSODY_V1_FEATURES)
 
 
-class ProsodyExtractor:
+class ProsodyV1Extractor:
     def extract(self, source: Path, units: list[Unit]) -> np.ndarray:
         sound = parselmouth.Sound(str(source))
         rows = []
@@ -61,8 +59,8 @@ class ProsodyExtractor:
                 part = sound.extract_part(from_time=unit.start, to_time=unit.end)
                 rows.append(self._unit(part))
             except Exception as error:
-                logger.debug("prosody failed for '%s': %s", unit.text, error)
-                rows.append(np.full(PROSODY_DIM, np.nan, dtype="float32"))
+                logger.debug("prosody-v1 failed for '%s': %s", unit.text, error)
+                rows.append(np.full(PROSODY_V1_DIM, np.nan, dtype="float32"))
         return np.stack(rows).astype("float32")
 
     def _unit(self, part: parselmouth.Sound) -> np.ndarray:
@@ -167,7 +165,7 @@ def _stats(values: np.ndarray) -> list[float]:
     return [values.mean(), values.std(), values.min(), values.max()]
 
 
-def prosody_dataset(
+def prosody_v1_dataset(
     config: ProjectConfig,
     paths: ProjectPaths,
     track_ids: Iterable[str] | None = None,
@@ -176,7 +174,7 @@ def prosody_dataset(
 ) -> list[str]:
     dataset = config.data.dataset
     vocal_dir = paths.vocals(dataset)
-    target_dir = paths.features(dataset, "word", "prosody")
+    target_dir = paths.features(dataset, "word", "prosody-v1")
 
     tracks = sorted(paths.transcriptions(dataset).glob("*.json"))
     if track_ids is not None:
@@ -189,7 +187,7 @@ def prosody_dataset(
         logger.warning("no transcriptions found for %s", dataset)
         return []
 
-    extractor = ProsodyExtractor()
+    extractor = ProsodyV1Extractor()
     done: list[str] = []
     skipped = 0
     for index, track in enumerate(tracks, start=1):
