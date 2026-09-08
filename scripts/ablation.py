@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None):
             train_set, val_set, test_set = standardize_prosody(
                 train_set, val_set, test_set
             )
-        name = f"ablation-{args.arm}-{args.processing_level}-fold{fold}"
+        name = f"ablation-{args.model}-{args.processing_level}-fold{fold}"
         _, test_metrics = fit(
             config, paths, train_set, val_set, test_set, name, config.seed + fold
         )
