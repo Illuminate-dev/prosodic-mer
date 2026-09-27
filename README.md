@@ -1,5 +1,8 @@
 # Utilizing Prosodic Analysis for Music Emotion Recognition
 
+> Note: While this project contains only the code for the second version of the paper,
+> much of the code, especially associated with feature extraction, is reused.
+
 This code is based on the implementation loosely described in the MMD-MII paper.
 Where there is ambiguity in the paper, decisions had to be made. The main
 decisions made are as follows:
@@ -34,14 +37,14 @@ prosody architecture, versioned 1 through 3. They include the following features
 
 **`prosody-v2` (46 dims, plus 29 per track)**
 
-- *Performance group*: F0 relative to the track median in semitones, with
+- _Performance group_: F0 relative to the track median in semitones, with
   statistics; pitch-interval histogram and mean/standard deviation; up-to-down
   and down-to-up transition rates; vibrato rate and extent; onset rate; beat
   residual; loudness relative to the track mean; loudness standard deviation,
   range, change count and change magnitude; attack and decay slope; gap fraction.
-- *Tonality group*: key-relative chroma, chord root, chord mode, chord match,
+- _Tonality group_: key-relative chroma, chord root, chord mode, chord match,
   tonal tension and its change, chord change.
-- *Extra group*: key one-hot, mode, key confidence, tempo, rubato, tempo
+- _Extra group_: key one-hot, mode, key confidence, tempo, rubato, tempo
   variance.
 
 **`prosody-v3` (26 dims)**
