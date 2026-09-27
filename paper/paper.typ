@@ -236,14 +236,15 @@ correlation of the trained model.
 
 Each experiment uses a five-fold cross-validation at the song level. Within each fold, the dataset
 is split with 10% of tracks reserved for validation, 10% for testing, and the remaining 80% used for
-training. After potentially significant findings, the main pair-level comparison repeats the five-fold
-split under five different partition seeds, for a total of 25 paired folds for a verification of
-significance. The other versions of ablation use a single partition seed, for a total of five folds.
-Splitting is performed at the song level to prevent data leakage#footnote[Data leakage occurs when
-  information from outside the training set influences the model. Splitting at the song level prevents
-  excerpts from the same song from appearing in both training and test sets, which would inflate apparent
-  performance.]. The validation split is used only to monitor performance between epochs and to
-trigger early stopping in the case of insignificant improvement following 10 continuous epochs.
+training. After potentially significant findings, the main pair-level comparison repeats the
+five-fold split under five different partition seeds, for a total of 25 paired folds for a
+verification of significance. The other versions of ablation use a single partition seed, for a
+total of five folds. Splitting is performed at the song level to prevent data leakage#footnote[Data
+  leakage occurs when information from outside the training set influences the model. Splitting at
+  the song level prevents excerpts from the same song from appearing in both training and test sets,
+  which would inflate apparent performance.]. The validation split is used only to monitor
+performance between epochs and to trigger early stopping in the case of insignificant improvement
+following 10 continuous epochs.
 
 == Preprocessing Pipeline
 
@@ -429,17 +430,17 @@ closely predictions match ground-truth values.
 The ablation compares one baseline against three versioned prosodic feature sets. The main
 comparison is the baseline (VGGish + ALBERT) against the baseline plus `prosody-v2`, both at pair
 granularity, evaluated over 25 paired folds (five partition seeds $times$ five folds). The remaining
-points of comparison are exploratory and use a single seed over five folds: the baseline and `prosody-v2`
-at word granularity, and `prosody-v3` at both pair and word granularity. A further single-fold block
-ablation removes one `prosody-v2` feature block at a time. Finally, `prosody-v1` was trained under
-track supervision rather than the sentence supervision used by the headline arms, so its numbers are
-not directly comparable.
+points of comparison are exploratory and use a single seed over five folds: the baseline and
+`prosody-v2` at word granularity, and `prosody-v3` at both pair and word granularity. A further
+single-fold block ablation removes one `prosody-v2` feature block at a time. Finally, `prosody-v1`
+was trained under track supervision rather than the sentence supervision used by the headline arms,
+so its numbers are not directly comparable.
 
 == Reproducibility Notes
 
 All random operations were seeded. The default training seed is 42. Each of the five folds within
-the main comparison uses a training seed of `partition_seed + fold`, and the five partition
-seeds are 42, 1042, 2042, 3042, and 4042, yielding 25 paired folds. The alternative versions use only
+the main comparison uses a training seed of `partition_seed + fold`, and the five partition seeds
+are 42, 1042, 2042, 3042, and 4042, yielding 25 paired folds. The alternative versions use only
 partition seed 42. This maintains diversity across training environments while keeping the results
 reproducible through deterministic training.
 
@@ -501,17 +502,17 @@ output, valence improves by $+0.0514$ in $R^2$ (CI $[+0.0272, +0.0756]$) and aro
 (CI $[+0.0097, +0.0665]$), with both improving in 22 of 25 folds.
 
 The same treatment at word granularity, evaluated over five exploratory folds under a single
-partition seed, does not demonstrate a similar increase in performance. In fact, the results obtained
-were a $+0.0213$ in $R^2$, with only 3 of 5 folds improving. These results indicate that word-level
-processing does not increase performance, at least by a statistically significant amount.
+partition seed, does not demonstrate a similar increase in performance. In fact, the results
+obtained were a $+0.0213$ in $R^2$, with only 3 of 5 folds improving. These results indicate that
+word-level processing does not increase performance, at least by a statistically significant amount.
 
 The single-fold block ablation (Figure~@fig:ablation_overview, panel c) removes one `prosody-v2`
 feature block at a time at word granularity. Every removal lowers $R^2$ relative to the full set
 (0.478), with timing (-0.124), f0 (-0.110), tonality (-0.073), and loudness (-0.045) contributing
 most. Because this ablation uses one fold it is exploratory and thus not indicative of a guaranteed
-improvement, but provides a basis for future research. As a control, `prosody-v1`
-does not improve over the baseline under track supervision (0.340 vs. 0.369 for $R^2$), consistent
-with the gain coming from the feature treatment rather than from adding a third stream.
+improvement, but provides a basis for future research. As a control, `prosody-v1` does not improve
+over the baseline under track supervision (0.340 vs. 0.369 for $R^2$), consistent with the gain
+coming from the feature treatment rather than from adding a third stream.
 
 #figure(
   tabular(
@@ -543,11 +544,11 @@ with the gain coming from the feature treatment rather than from adding a third 
 
 #figure(
   image("figures/ablation_overview.png", width: 100%),
-  caption: [Ablation overview. (a) $R^2$ charted at pair and word granularity respectively for each set of features over
-    five folds. Each dot is an individual fold's measurement. (b) Per-fold $R^2$ difference
-    between `prosody-v2` and the baseline at pair-level granularity across the 25 paired folds. The
-    dashed line and band are the mean and 95% confidence interval respectively. (c) Single-fold drop-one block
-    ablation of `prosody-v2` features. (d) `Prosody-v1` control under
+  caption: [Ablation overview. (a) $R^2$ charted at pair and word granularity respectively for each
+    set of features over five folds. Each dot is an individual fold's measurement. (b) Per-fold
+    $R^2$ difference between `prosody-v2` and the baseline at pair-level granularity across the 25
+    paired folds. The dashed line and band are the mean and 95% confidence interval respectively.
+    (c) Single-fold drop-one block ablation of `prosody-v2` features. (d) `Prosody-v1` control under
     track supervision.],
   placement: top,
   scope: "parent",
@@ -569,50 +570,56 @@ with the gain coming from the feature treatment rather than from adding a third 
 
 = Discussion
 
-The central result of this study is a statistically supported improvement, but the improvement itself is generally modest.
-While this does achieve state-of-the-art performance, it does so with minor improvement to accuracy and
-over a different output than the MMD-MII model was designed for.
+The central result of this study is a statistically supported improvement, but the improvement
+itself is generally modest. While this does achieve state-of-the-art performance, it does so with
+minor improvement to accuracy and over a different output than the MMD-MII model was designed for.
 Adding `prosody-v2` at pair-level granularity specifically only raises $R^2$ by $+0.0447$ over the
-two-stream baseline, supported with a 95% confidence interval that excludes zero. Associated with this are improvements to CCC
-and RMSE as well. This effect is also supported by the general observation that each run generally leads to
-increased improvement in at least one of valence or arousal accuracy. The control of `prosody-v1` shows that the
-gain is not explained by the mere addition of more parameters, as it uses the same three-stream architecture and similar increases in parameter count
-but does not improve over the baseline under track supervision.
+two-stream baseline, supported with a 95% confidence interval that excludes zero. Associated with
+this are improvements to CCC and RMSE as well. This effect is also supported by the general
+observation that each run generally leads to increased improvement in at least one of valence or
+arousal accuracy. The control of `prosody-v1` shows that the gain is not explained by the mere
+addition of more parameters, as it uses the same three-stream architecture and similar increases in
+parameter count but does not improve over the baseline under track supervision.
 
-A substantial performance divergence remains between the two prediction subtasks. It is wholly evident that arousal is
-predicted much more accurately than valence, as arousal $R^2$ is roughly 0.5, while valence $R^2$ is
-roughly 0.13-0.21. Prosody improves both outputs, but it improves valence more ($+0.0514$ in $R^2$)
-than arousal ($+0.0381$). This asymmetry is consistent with prior findings that valence is
-considerably more difficult to predict than arousal, because arousal tends to map more reliably
-onto lower-level features while valence is more reliant on the higher-level features of harmonicity, mode,
-lyrical content, and subtle timbral nuances#cite(<Liyanarachchi2025>, <Yang2012>).
+A substantial performance divergence remains between the two prediction subtasks. It is wholly
+evident that arousal is predicted much more accurately than valence, as arousal $R^2$ is roughly
+0.5, while valence $R^2$ is roughly 0.13-0.21. Prosody improves both outputs, but it improves
+valence more ($+0.0514$ in $R^2$) than arousal ($+0.0381$). This asymmetry is consistent with prior
+findings that valence is considerably more difficult to predict than arousal, because arousal tends
+to map more reliably onto lower-level features while valence is more reliant on the higher-level
+features of harmonicity, mode, lyrical content, and subtle timbral nuances#cite(<Liyanarachchi2025>, <Yang2012>).
 
-The pair-level gain here is an interesting piece of evidence to note. This shows that the prosodic feature treatment can
-contribute non-redundant signal to the cross-modal interaction on a pair-level. However, the lack of a significant increase in word-level analysis
-indicates that moving the interaction down to individual words may not be as useful to the task of music emotion recognition.
-Taken together, the two results suggest that the benefit comes from the coarser
-`prosody-v2` feature representations rather than the finer units as initially hypothesized. This overall lends credibility to the claim that the
-sentence-level unit of the existing architecture is already adequate for this task.
+The pair-level gain here is an interesting piece of evidence to note. This shows that the prosodic
+feature treatment can contribute non-redundant signal to the cross-modal interaction on a
+pair-level. However, the lack of a significant increase in word-level analysis indicates that moving
+the interaction down to individual words may not be as useful to the task of music emotion
+recognition. Taken together, the two results suggest that the benefit comes from the coarser
+`prosody-v2` feature representations rather than the finer units as initially hypothesized. This
+overall lends credibility to the claim that the sentence-level unit of the existing architecture is
+already adequate for this task.
 
-The prediction figures (Figures~@fig:valence and~@fig:arousal) show the same
-pattern at 25-fold scale. Arousal predictions tend to line up to the line of identity closer than valence,
-with errors centered near zero and a standard deviation of about 0.19, while valence predictions are
-compressed toward zero. This means that tracks with a valence on the extreme ends of the spectrum (high or low) are typically under- and over-predicted
-respectively, and the error distribution of valence is generally wide relative compared to that of the arousal.
-However, note that adding `prosody-v2` features shifts the error distributions closer to zero, with the
-larger relative improvement on valence.
+#block(breakable: false)[
+  The prediction figures (Figures~@fig:valence and~@fig:arousal) show the same pattern at 25-fold
+  scale. Arousal predictions tend to line up to the line of identity closer than valence, with
+  errors centered near zero and a standard deviation of about 0.19, while valence predictions are
+  compressed toward zero. This means that tracks with a valence on the extreme ends of the spectrum
+  (high or low) are typically under- and over-predicted respectively, and the error distribution of
+  valence is generally wide relative compared to that of the arousal. However, note that adding
+  `prosody-v2` features shifts the error distributions closer to zero, with the larger relative
+  improvement on valence.
+]
 
 == Limitations
 
 Several limitations qualify these results. First, the study uses a single dataset (DEAM) and a
 single architecture family (the N-stream emotion-LSTM), so the effect may not transfer to other
 corpora or models. Second, the effect itself is not very large, as the $R^2$ increase of 0.045 is
-indeed statistically supported to be significant, yet is small in absolute terms. Arousal itself still remains harder to predict than valence.
-Third, only the main pair-level comparison uses the full set of 25 paired folds while the
-word-level and `prosody-v3` arms use a total of five folds. Thus, there may be a statistically significant
-different between values, but the scale of performed comparison did not identify one.
-Finally, the dataset is small by the modern size of typical machine learning datasets, with only 594 usable tracks, which constrains
-generalization.
+indeed statistically supported to be significant, yet is small in absolute terms. Valence itself
+remains much harder to predict than arousal. Third, only the main pair-level comparison uses the
+full set of 25 paired folds while the word-level and `prosody-v3` arms use a total of five folds.
+Thus, there may be a statistically significant different between values, but the scale of performed
+comparison did not identify one. Finally, the dataset is small by the modern size of typical machine
+learning datasets, with only 594 usable tracks, which constrains generalization.
 
 == Implications
 
@@ -621,9 +628,9 @@ recommendation. The pair-level gain shows that a richer prosodic feature treatme
 non-redundant signal to a cross-modal framework, and that the signal can be captured at the
 sentence-level unit already used by existing architectures rather than requiring word-level
 alignment. At the same time, the modest effect size, despite the statistical significance, indicates
-that prosodic features do not suffice for the innovation of additional feature types.
-In general, this improvement should be described as a step forward rather than a full solution;
-human performance of valence-arousal is still miles ahead of MER systems.
+that prosodic features do not suffice for the innovation of additional feature types. In general,
+this improvement should be described as a step forward rather than a full solution; human
+performance of valence-arousal is still miles ahead of MER systems.
 
 In the real world, the arousal-side accuracy observed here means that applications centered on
 detecting the energy or activation level of a track, such as music therapy session design or
@@ -633,14 +640,14 @@ given the model's weaker valence performance.
 
 = Conclusion
 
-In this study, an N-stream framework for multimodal music emotion recognition was
-introduced, integrating prosodic analysis of vocals alongside existing streams of lyrical and
-acoustic analysis. The effectiveness of the approach was verified through valence-arousal regression
-under a five-fold cross-validation. Adding the `prosody-v2` treatment at pair granularity produced a
-modest but statistically supported improvement over the baseline of the MMD-MII architecture across 25 paired folds.
-At the same time, treatment at word granularity produced no reliable gain, indicating that finer granularity may not necessarily lead to improvement.
-Despite the limitations of dataset size, this represents a meaningful step forward in the domain
-of music emotion recognition.
+In this study, an N-stream framework for multimodal music emotion recognition was introduced,
+integrating prosodic analysis of vocals alongside existing streams of lyrical and acoustic analysis.
+The effectiveness of the approach was verified through valence-arousal regression under a five-fold
+cross-validation. Adding the `prosody-v2` treatment at pair granularity produced a modest but
+statistically supported improvement over the baseline of the MMD-MII architecture across 25 paired
+folds. At the same time, treatment at word granularity produced no reliable gain, indicating that
+finer granularity may not necessarily lead to improvement. Despite the limitations of dataset size,
+this represents a meaningful step forward in the domain of music emotion recognition.
 
 = Appendix
 
