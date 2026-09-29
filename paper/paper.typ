@@ -41,22 +41,24 @@ sufficiently links the features to the output.
 
 == Emotional Model
 
-The task of computationally recognizing emotions relies upon the method of reliably representing
-representing the complexity of human emotions within a data structure. To develop accurate methods
-of MER, an understanding of the various models of emotions is necessary. Most emotion models take on
-two distinct types of representation: continuous, or discrete. // maybe incorrect grammar
-Those of the former type often represent a particular emotion as a vector in a multidimensional
-space, where axes are determined based on theoretical factors in emotion expression. For example,
-Russell's circumplex model uses valence#footnote[Valence describes whether an emotion is positive
-  (pleasant) or negative (unpleasant).] and arousal#footnote[Arousal describes the energy or
-  activation level of an emotion, ranging from calm to excited.] as two axes, while Thayer's Model
-bases dimensions on energy-stress and calm-tired ranges #cite(<Russell1980>, <Thayer1990>). Discrete
-models, on the other hand, involve the definition of a set of emotions and characteristics. In the
-context of music, two discrete models are popular: the Geneva Emotional Music Scale Model, and
-Hevner's Emotional model, both of which rely on descriptions of the emotional response to music
-#cite(<Posner2005>, <Zentner2008>). Though the aformentioned discrete models have merit in their
-application to musical terms, surveys have shown that most MER researchers choose Russell’s Model
-due to dataset availability~@Liyanarachchi2025.
+The task of computationally recognizing emotions relies upon the method of reliably representing the
+complexity of human emotions within a data structure. To develop accurate methods of MER, an
+understanding of the various models of emotions is necessary. Most emotion models take on two
+distinct types of representation: continuous, or discrete. Those of the former type often represent
+a particular emotion as a vector in a multidimensional space, where axes are determined based on
+theoretical factors in emotion expression. For example, Russell's circumplex model uses
+valence#footnote[Valence describes whether an emotion is positive (pleasant) or negative
+  (unpleasant).] and arousal#footnote[Arousal describes the energy or activation level of an
+  emotion, ranging from calm to excited.] as two axes, while Thayer's model bases dimensions on
+energy-stress and calm-tired ranges #cite(<Russell1980>, <Thayer1990>). Discrete models, on the
+other hand, involve the definition of a set of emotions and characteristics. In the context of
+music, two discrete models are popular: the Geneva Emotional Music Scale Model, and Hevner's
+Emotional model, both of which rely on descriptions of the emotional response to music #cite(
+  <Posner2005>,
+  <Zentner2008>,
+). Though the aforementioned discrete models have merit in their application to musical terms,
+surveys have shown that most MER researchers choose Russell’s model due to dataset
+availability~@Liyanarachchi2025.
 
 == Features
 Equally important to the way the output of computer models for MER is represented are the inputs
@@ -82,12 +84,11 @@ centroid#footnote[The spectral centroid is the “center of mass” of a sound�
 ). These features are commonly extracted using spectrograms, or analysis of the frequencies of audio
 over time, and have dominated early MER research due to the efficiency and direct correlation to
 audio. Temporal features, on the other hand, capture the rhythm and tempo of a song, along with
-other time-related aspects of the track. Temporal features differ in comparison to spectral
-features, as they typically focus on how aspects evolve over durations of time. Though this
-technique has not been utilized as much as spectral features in the context of MER research,
-analyses of time-variation features, such as the consistency of rhythmic patterns, demonstrate a
-correlation between evolving temporal features throughout time and the respective emotions elicited
-from music~@Yang2023.
+other time-related aspects of the track. Temporal features differ from spectral features, as they
+typically focus on how aspects evolve over durations of time. Though this technique has not been
+utilized as much as spectral features in the context of MER research, analyses of time-variation
+features, such as the consistency of rhythmic patterns, demonstrate a correlation between evolving
+temporal features throughout time and the respective emotions elicited from music~@Yang2023.
 
 In MER research, most models rarely utilize features above the low-level section, especially due to
 the complexity that arises when processing mid- and high-level features. Thus, there has been
@@ -101,9 +102,10 @@ and high-level semantic understanding, thus potentially being able to assist in 
 and emotionally relevant representation of musical content.
 
 Historically, lower-level descriptions were hand-crafted to maximize information extraction,
-resulting in greater levels of accuraacy. However, recent usage of learned embeddings, such as the
-VGGish convolutional network~@Hershey2016 pretrained on AudioSet log-mel spectrograms producing an
-128-dimensional embedding per audio segment, has begun more comprehensively represent audio streams.
+resulting in greater levels of accuracy. However, recent usage of learned embeddings, such as the
+VGGish convolutional network~@Hershey2016 pretrained on AudioSet log-mel spectrograms producing a
+128-dimensional embedding per audio segment, has begun to more comprehensively represent audio
+streams.
 
 == Techniques
 
@@ -115,7 +117,7 @@ much simpler, failed to account for the relationship and interconnection between
 how it is sung. The semantic content of the lyrics does influence the emotional perception, but the
 variation with which words are delivered in vocal performance adds many layers of nuance that
 separation could not capture. As in speech, the way words are said matters as much as which words
-that are said. Recent work has begun to address this shortcoming via the incorporation of lyrical,
+are said. Recent work has begun to address this shortcoming via the incorporation of lyrical,
 auditory, and even visual data into multimodal frameworks. However, many of these approaches still
 exhibit the same limited interconnection seen in prior MER systems #cite(<Wang2024>, <Yang2023>).
 This is mainly because each modality is typically processed through individual feature extraction
@@ -134,21 +136,21 @@ introduced emotion-long-short-term-memory (emotion-LSTM)#footnote[Long short-ter
   well-suited for ordered data such as text or audio.] cells that allow for cross-interaction
 between lyric and melody representations of music tracks, yet also included an implementation of a
 structural analysis approach that processes the verse and chorus sections separately~@Yang2023. The
-structural awareness included recognizes the idea that different sections of a song can serve
-different functions, with sections building on each other to develop narrative or thematic content.
-The emotion-LSTM cells utilized in the COSMIC framework enable the bidirectional information flow
+structural awareness recognizes the idea that different sections of a song can serve different
+functions, with sections building on each other to develop narrative or thematic content. The
+emotion-LSTM cells utilized in the COSMIC framework enable the bidirectional information flow
 between the lyrical and acoustic features typically seen in modern natural language processing
 architectures. This allows the model to learn how the different modalities are developed throughout
 the song to produce emotional impact. Expanding on this, the MMD-MII model proposed by Wang et al.
-adds on a multilayered analysis approach with a dedicated cross-processing module, representing
-another step in the direction of more multimodal integration~@Wang2024. The MMD-MII framework
-similarly processes the chorus separately from the verses, again acknowledging the intricacies in
-music structure. The dedicated cross-processing module allows greater interaction between the
-lyrical content and musical content of the audio input for greater cross-modality. However, these
-models are both still limited by the processing of vocal content at the coarse unit of a phrase,
-with each lyrical line treated as a unified semantic and acoustic unit without examining whether the
-variation within the unit carries additional emotional signal. An analysis at the word-level could
-potentially be revealing regarding further data hidden between overall phrases.
+adds a multilayered analysis approach with a dedicated cross-processing module, representing another
+step in the direction of more multimodal integration~@Wang2024. The MMD-MII framework similarly
+processes the chorus separately from the verses, again acknowledging the intricacies in music
+structure. The dedicated cross-processing module allows greater interaction between the lyrical
+content and musical content of the audio input for greater cross-modality. However, these models are
+both still limited by the processing of vocal content at the coarse unit of a phrase, with each
+lyrical line treated as a unified semantic and acoustic unit without examining whether the variation
+within the unit carries additional emotional signal. An analysis at the word-level could potentially
+be revealing regarding further data hidden between overall phrases.
 
 This processing and analysis at the sentence level instead of a finer word-level overlooks a crucial
 part of emotional expression in music: prosody. Prosody typically encompasses the
@@ -204,13 +206,13 @@ performance.
 
 = Methodology
 
-The goal of this study is to gauge the effect of including various prosodic features the impact of
-different granularity on performance. The methodology used is a modification of the methodology and
-architecture developed and enumerated in the MMD-MII paper by Wang et al. The overall methodology
-involves implementing the architecture described in the aforementioned paper, adding a prosodic
-input stream, and running an ablation over feature set and granularity to identify the impact of
-each change. The remainder of this section reviews and defends, in chronological order, the steps
-taken to train and evaluate this model.
+The goal of this study is to gauge the effect of including various prosodic features and the impact
+of different granularity on performance. The methodology used is a modification of the methodology
+and architecture developed and enumerated in the MMD-MII paper by Wang et al. The overall
+methodology involves implementing the architecture described in the aforementioned paper, adding a
+prosodic input stream, and running an ablation over feature set and granularity to identify the
+impact of each change. The remainder of this section reviews and defends, in chronological order,
+the steps taken to train and evaluate this model.
 
 == Dataset
 
@@ -231,7 +233,7 @@ training process. This means that there is an undocumented conversion between va
 the classes used in the paper that this research does not have access to. As a result, a slight
 modification to the architecture was made: the implemented architecture contains an output head of
 valence-arousal instead of classification. This should not impact the validity of results, as
-comparitive and ablation testing will be able to identify the significance of a relative change in
+comparative and ablation testing will be able to identify the significance of a relative change in
 correlation of the trained model.
 
 Each experiment uses a five-fold cross-validation at the song level. Within each fold, the dataset
@@ -255,7 +257,7 @@ separation#footnote[Source separation is the process of isolating individual com
 paper~@Hennequin2020. This is necessary for adequate accuracy when extracting prosodic features from
 the vocal track, which requires the raw vocal audio.
 
-Next, lyrics were automatically transcribed using OpenAI Whisper (a locally ran whisper-small
+Next, lyrics were automatically transcribed using OpenAI Whisper (a locally run whisper-small
 model). Though initially developed for non-musical vocal transcription, Whisper has been found to
 achieve highly-accurate performance on automatic lyrics transcription when combined with source
 separation to isolate vocals~@Syed2025. Whisper also has the advantage of providing the word-level
@@ -263,7 +265,7 @@ alignment needed for training without fine-tuning. After extracting word-level t
 lyrics underwent minimal postprocessing aimed to remove low confidence words#footnote[Words flagged
   by the transcription model as having low certainty.] and identify verse/chorus structure. In
 addition, tracks with no vocals were filtered out, as previously mentioned in the dataset section,
-to align with this study's (and the MMD-MII) focus on music with vocals.
+to align with this study's (and MMD-MII's) focus on music with vocals.
 
 After transcription, the final stage in preprocessing was to align the per-second emotion labels
 from DEAM with the word-level timestamps from the Whisper transcription. This was achieved through
@@ -286,17 +288,17 @@ pair granularity is used.
 After preprocessing, feature extraction was broken up into three types: acoustic features, prosodic
 features, and lyrical features. Acoustic features were extracted from the full audio track (vocals
 and accompaniment) using VGGish~@Hershey2016. When run through the VGGish network, each audio
-segment is transformed into a 128-dimensional embedding, with each embedding overlapping a unit's
-time span mean-pooled to give one 128-dimensional acoustic vector per unit.
+segment is transformed into a 128-dimensional embedding, and the embeddings overlapping a unit's
+time span are mean-pooled to give one 128-dimensional acoustic vector per unit.
 
 Prosodic features were extracted using Parselmouth, a Python interface to Praat, which is the widely
 used tool in both phonetic and prosodic research. Additionally, librosa, a library for interfacing
 with audio, was used for extracting onset, chroma, key, and chord analysis. After continuous
 development and refinement, three versioned feature sets were implemented and ablated. `prosody-v1`
 emerged initially as a static descriptor set. Soon, `prosody-v2` followed as a new set of features
-capturing the dynamics and tonality track. Finally, `prosody-v3` aimed to take the dynamics and
-tonality features of `prosody-v2` and make them relative to the track. All are extracted per word
-and resampled to the model's axis.
+capturing the dynamics and tonality of the track. Finally, `prosody-v3` aimed to take the dynamics
+and tonality features of `prosody-v2` and make them relative to the track. All are extracted per
+word and resampled to the model's axis.
 
 #figure(
   tabular(
@@ -471,8 +473,8 @@ reproducible through deterministic training.
   caption: [Pair-level regression metrics over 25 paired folds.],
 ) <tab:pairs-absolute>
 
-The results indicate that a treatment of `prosody-v2` feature set improves every reported metric.
-The paired differences and their 95% confidence intervals over the same 25 folds are shown in
+The results indicate that the `prosody-v2` feature set improves every reported metric. The paired
+differences and their 95% confidence intervals over the same 25 folds are shown in
 Table~@tab:pair-delta.
 
 #figure(
@@ -508,8 +510,8 @@ word-level processing does not increase performance, at least by a statistically
 
 The single-fold block ablation (Figure~@fig:ablation_overview, panel c) removes one `prosody-v2`
 feature block at a time at word granularity. Every removal lowers $R^2$ relative to the full set
-(0.478), with timing (-0.124), f0 (-0.110), tonality (-0.073), and loudness (-0.045) contributing
-most. Because this ablation uses one fold it is exploratory and thus not indicative of a guaranteed
+(0.478), with timing (-0.124), F0 (-0.110), tonality (-0.073), and loudness (-0.045) contributing
+most. Because this ablation uses one fold, it is exploratory and thus not indicative of a guaranteed
 improvement, but provides a basis for future research. As a control, `prosody-v1` does not improve
 over the baseline under track supervision (0.340 vs. 0.369 for $R^2$), consistent with the gain
 coming from the feature treatment rather than from adding a third stream.
@@ -575,11 +577,11 @@ itself is generally modest. While this does achieve state-of-the-art performance
 minor improvement to accuracy and over a different output than the MMD-MII model was designed for.
 Adding `prosody-v2` at pair-level granularity specifically only raises $R^2$ by $+0.0447$ over the
 two-stream baseline, supported with a 95% confidence interval that excludes zero. Associated with
-this are improvements to CCC and RMSE as well. This effect is also supported by the general
-observation that each run generally leads to increased improvement in at least one of valence or
-arousal accuracy. The control of `prosody-v1` shows that the gain is not explained by the mere
-addition of more parameters, as it uses the same three-stream architecture and similar increases in
-parameter count but does not improve over the baseline under track supervision.
+this are improvements to CCC and RMSE as well. This effect is also supported by the observation that
+each run generally leads to increased improvement in at least one of valence or arousal accuracy.
+The control of `prosody-v1` shows that the gain is not explained by the mere addition of more
+parameters, as it uses the same three-stream architecture and similar increases in parameter count
+but does not improve over the baseline under track supervision.
 
 A substantial performance divergence remains between the two prediction subtasks. It is wholly
 evident that arousal is predicted much more accurately than valence, as arousal $R^2$ is roughly
@@ -594,8 +596,8 @@ feature treatment can contribute non-redundant signal to the cross-modal interac
 pair-level. However, the lack of a significant increase in word-level analysis indicates that moving
 the interaction down to individual words may not be as useful to the task of music emotion
 recognition. Taken together, the two results suggest that the benefit comes from the coarser
-`prosody-v2` feature representations rather than the finer units as initially hypothesized. This
-overall lends credibility to the claim that the sentence-level unit of the existing architecture is
+`prosody-v2` feature representations rather than the finer units as initially hypothesized. Overall,
+this lends credibility to the claim that the sentence-level unit of the existing architecture is
 already adequate for this task.
 
 #block(breakable: false)[
@@ -604,9 +606,9 @@ already adequate for this task.
   errors centered near zero and a standard deviation of about 0.19, while valence predictions are
   compressed toward zero. This means that tracks with a valence on the extreme ends of the spectrum
   (high or low) are typically under- and over-predicted respectively, and the error distribution of
-  valence is generally wide relative compared to that of the arousal. However, note that adding
-  `prosody-v2` features shifts the error distributions closer to zero, with the larger relative
-  improvement on valence.
+  valence is generally wide relative to that of arousal. However, note that adding `prosody-v2`
+  features shifts the error distributions closer to zero, with the larger relative improvement on
+  valence.
 ]
 
 == Limitations
@@ -617,9 +619,9 @@ corpora or models. Second, the effect itself is not very large, as the $R^2$ inc
 indeed statistically supported to be significant, yet is small in absolute terms. Valence itself
 remains much harder to predict than arousal. Third, only the main pair-level comparison uses the
 full set of 25 paired folds while the word-level and `prosody-v3` arms use a total of five folds.
-Thus, there may be a statistically significant different between values, but the scale of performed
-comparison did not identify one. Finally, the dataset is small by the modern size of typical machine
-learning datasets, with only 594 usable tracks, which constrains generalization.
+Thus, there may be a statistically significant difference between values, but the scale of the
+comparison did not identify one. Finally, the dataset is small by the standards of typical modern
+machine learning datasets, with only 594 usable tracks, which constrains generalization.
 
 == Implications
 
@@ -630,7 +632,7 @@ sentence-level unit already used by existing architectures rather than requiring
 alignment. At the same time, the modest effect size, despite the statistical significance, indicates
 that prosodic features do not suffice for the innovation of additional feature types. In general,
 this improvement should be described as a step forward rather than a full solution; human
-performance of valence-arousal is still miles ahead of MER systems.
+performance of valence-arousal is still far ahead of MER systems.
 
 In the real world, the arousal-side accuracy observed here means that applications centered on
 detecting the energy or activation level of a track, such as music therapy session design or
