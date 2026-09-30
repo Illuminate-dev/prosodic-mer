@@ -1,5 +1,7 @@
 # Utilizing Prosodic Analysis for Music Emotion Recognition
 
+[![DOI](https://zenodo.org/badge/1390117353.svg)](https://doi.org/10.5281/zenodo.23044602)
+
 > Note: While this project contains only the code for the second version of the paper,
 > much of the code, especially associated with feature extraction, is reused.
 

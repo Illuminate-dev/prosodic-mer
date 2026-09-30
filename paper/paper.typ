@@ -217,7 +217,7 @@ the steps taken to train and evaluate this model.
 == Dataset
 
 One dataset was chosen for use with the training of this model: Dataset for Emotion Analysis in
-Music (DEAM). This dataset contains 1,802 audio files, with a mixture of excerpts and full-length
+Music (DEAM) #cite(<Aljanaki2017>). This dataset contains 1,802 audio files, with a mixture of excerpts and full-length
 songs. DEAM is specifically made for use with MER tasks, as it contains annotations for both
 per-second valence and arousal values, as well as overall song-level valence and arousal. All
 emotion annotations are in the range $[-1, 1]$, where negative values indicate negative valence or
@@ -294,7 +294,8 @@ time span are mean-pooled to give one 128-dimensional acoustic vector per unit.
 Prosodic features were extracted using Parselmouth, a Python interface to Praat, which is the widely
 used tool in both phonetic and prosodic research. Additionally, librosa, a library for interfacing
 with audio, was used for extracting onset, chroma, key, and chord analysis. After continuous
-development and refinement, three versioned feature sets were implemented and ablated. `prosody-v1`
+development and refinement, three versioned feature sets were implemented and ablated
+(@tab:prosody-versions). `prosody-v1`
 emerged initially as a static descriptor set. Soon, `prosody-v2` followed as a new set of features
 capturing the dynamics and tonality of the track. Finally, `prosody-v3` aimed to take the dynamics
 and tonality features of `prosody-v2` and make them relative to the track. All are extracted per
@@ -374,7 +375,8 @@ and $epsilon = 10^(-8)$ to account for near-zero variance features.
 
 #arch-figure <fig:architecture_diagram>
 
-The overall framework is an N-stream model, where N can be either two or three, referring to lyrical
+The overall framework, illustrated in @fig:architecture_diagram, is an N-stream model,
+where N can be either two or three, referring to lyrical
 and audio modalities or lyrical, audio, and prosodic modalities. Each selected modality is encoded
 by its own stream, the streams interact through emotion-LSTM cells that share a single emotion
 vector, and the resulting candidate emotions are combined by a learned gate. While the baseline uses
@@ -473,9 +475,10 @@ reproducible through deterministic training.
   caption: [Pair-level regression metrics over 25 paired folds.],
 ) <tab:pairs-absolute>
 
-The results indicate that the `prosody-v2` feature set improves every reported metric. The paired
+The aggregated results (@tab:pairs-absolute) indicate that the `prosody-v2` feature set
+improves every reported metric. The paired
 differences and their 95% confidence intervals over the same 25 folds are shown in
-Table~@tab:pair-delta.
+@tab:pair-delta.
 
 #figure(
   tabular(
@@ -508,13 +511,14 @@ partition seed, does not demonstrate a similar increase in performance. In fact,
 obtained were a $+0.0213$ in $R^2$, with only 3 of 5 folds improving. These results indicate that
 word-level processing does not increase performance, at least by a statistically significant amount.
 
-The single-fold block ablation (Figure~@fig:ablation_overview, panel c) removes one `prosody-v2`
+The single-fold block ablation (@fig:ablation_overview, panel c) removes one `prosody-v2`
 feature block at a time at word granularity. Every removal lowers $R^2$ relative to the full set
 (0.478), with timing (-0.124), F0 (-0.110), tonality (-0.073), and loudness (-0.045) contributing
 most. Because this ablation uses one fold, it is exploratory and thus not indicative of a guaranteed
 improvement, but provides a basis for future research. As a control, `prosody-v1` does not improve
 over the baseline under track supervision (0.340 vs. 0.369 for $R^2$), consistent with the gain
-coming from the feature treatment rather than from adding a third stream.
+coming from the feature treatment rather than from adding a third stream. The full experimental
+setup is summarised in @tab:cv.
 
 #figure(
   tabular(
